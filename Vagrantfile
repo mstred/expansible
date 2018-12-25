@@ -1,10 +1,11 @@
 $nodes = <<-EOD
-cp -R /vagrant/.ssh ~
+# ssh-keygen -f ~/.ssh/id_rsa -N "" -t rsa
+# cp -R ~/.ssh /vagrant
+cp /vagrant/.ssh/id_rsa.pub /home/vagrant/.ssh/authorized_keys
 EOD
 
 $controller = <<-EOD
-echo "$(whoami)@$(hostname)"
-date
+cp -R /vagrant/.ssh /home/vagrant
 apt -y update && apt -y install python3 python3-pip
 pip3 install ansible virtualenv
 ansible --version
@@ -13,18 +14,22 @@ EOD
 Vagrant.configure('2') do |config|
   config.vm.box = 'ubuntu/bionic64'
 
+  # config.vm.define "node" do |machine|
+  #   config.vm.provision 'shell', inline: $nodes
+  # end
+
   config.vm.define "node1" do |machine|
-    #machine.vm.network "private_network", ip: "172.17.177.21"
+    machine.vm.network "private_network", ip: "172.17.177.21"
     config.vm.provision 'shell', inline: $nodes
   end
   
   config.vm.define "node2" do |machine|
-    #machine.vm.network "private_network", ip: "172.17.177.22"
+    machine.vm.network "private_network", ip: "172.17.177.22"
     config.vm.provision 'shell', inline: $nodes
   end
 
   config.vm.define 'controller' do |machine|
-    # #machine.vm.network "private_network", ip: "172.17.177.11"
+    machine.vm.network "private_network", ip: "172.17.177.11"
 
     # machine.vm.provision :ansible_local do |ansible|
     #   # ansible.playbook       = "example.yml"
